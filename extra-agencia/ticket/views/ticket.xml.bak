@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+    <record model="ir.actions.act_window" id="ticket_input_action">
+        <field name="name">Temporal Ticket El Comercio</field>
+        <field name="res_model">ticket_input</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to define a Ticket.
+              </p><p>
+                You must define a Ticket for everything you sell.
+              </p><p>
+                The ticket form contains information.
+              </p>
+            </field>
+    </record>
+    <menuitem id="ticket_item"
+              name="Importacion Ticket SGC" sequence="10"
+              parent="base.menu_sales" groups="base.group_sale_salesman,base.group_sale_manager"
+              action="ticket_input_action"/>
+
+    <record model="ir.ui.view" id="ticket_view_form">
+        <field name="name">view.name</field>
+        <field name="model">ticket_input</field>
+        <field name="type">form</field>  <!-- tree,form,calendar,search,graph,gantt -->
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="Ticket">
+                <group>
+                    <field name="fe_emision"/>
+                    <field name="no_canilla"/>
+                    <field name="de_producto"/>
+                    <field name="p_pauta"/>
+                    <field name="q_vendida"/>
+                    <field name="de_producto_devolver"/>
+                    <field name="q_devolucion"/>
+                    <field name="qp_cancelo"/>
+                    <field name="p_total_dia"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="ticket_input_view_tree">
+        <field name="name">view.name</field>
+        <field name="model">ticket_input</field>
+        <field name="type">tree</field>  <!-- tree,form,calendar,search,graph,gantt -->
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <tree string="Ticket ">
+                <field name="fe_emision"/>
+                <field name="no_canilla"/>
+                <field name="de_producto"/>
+                <field name="p_pauta"/>
+                <field name="q_vendida"/>
+                <field name="de_producto_devolver"/>
+                <field name="q_devolucion"/>
+                <field name="qp_cancelo"/>
+                <field name="p_total_dia"/>
+            </tree>
+        </field>
+    </record>
+        <record id="view_ticket_filter" model="ir.ui.view">
+            <field name="name">ticket.select</field>
+            <field name="model">ticket_input</field>
+            <field name="arch" type="xml">
+                <search string="Search Ticket">
+                    <field name="nu_ticket" string="Ticket"/>
+                    <field name="fe_emision"/>
+                    <field name="no_canilla"/>
+                    <filter icon="terp-document-new" string="New" domain="[('state','=','draft')]"/>
+                    <filter icon="gtk-apply" string="Done" domain="[('state','in',('paid','invoiced','done'))]"/>
+                    <filter icon="terp-check" string="Invoiced" domain="[('state','=','invoiced')]"/>
+                    <filter icon="gtk-convert" string="Posted" domain="[('state','=','done')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Canilla" domain="[]" icon="terp-personal" context="{'group_by':'no_canilla'}"/>
+                        <filter string="Status" domain="[]" icon="terp-stock_effects-object-colorize" context="{'group_by':'state'}"/>
+                        <filter string="Fecha Emision" domain="[]" icon="terp-go-month" context="{'group_by':'fe_emision'}"/>
+                        <filter string="Producto" domain="[]" icon="terp-go-month" context="{'group_by':'de_producto'}"/>                        
+                    </group>
+                </search>
+            </field>
+        </record>
+
+    <record model="ir.actions.act_window" id="ticket_trans_action">
+        <field name="name">Historicos Ticket El Comercio</field>
+        <field name="res_model">ticket_trans</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to define a Ticket.
+              </p><p>
+                You must define a Ticket for everything you sell.
+              </p><p>
+                The ticket form contains information.
+              </p>
+            </field>
+    </record>
+    <menuitem id="ticket_trans"
+              name="Ticket SGC Historicos" sequence="11"
+              parent="base.menu_sales" 
+              action="ticket_trans_action"/>
+
+    <record model="ir.ui.view" id="ticket_view_form">
+        <field name="name">view.name</field>
+        <field name="model">ticket_trans</field>
+        <field name="type">form</field>  <!-- tree,form,calendar,search,graph,gantt -->
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="Ticket">
+                <group>
+                    <field name="fe_emision" readonly="1"/>
+                    <field name="no_canilla" readonly="1"/>
+                    <field name="de_producto" readonly="1"/>
+                    <field name="p_pauta" readonly="1"/>
+                    <field name="q_vendida"/>
+                    <field name="de_producto_devolver" readonly="1"/>
+                    <field name="q_devolucion" readonly="1"/>
+                    <field name="qp_cancelo" readonly="1"/>
+                    <field name="p_total_dia" readonly="1"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="ticket_trans_view_tree">
+        <field name="name">view.name</field>
+        <field name="model">ticket_trans</field>
+        <field name="type">tree</field>  <!-- tree,form,calendar,search,graph,gantt -->
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <tree string="Ticket ">
+                <field name="fe_emision"/>
+                <field name="no_canilla"/>
+                <field name="de_producto"/>
+                <field name="p_pauta"/>
+                <field name="q_vendida"/>
+                <field name="de_producto_devolver"/>
+                <field name="q_devolucion"/>
+                <field name="qp_cancelo"/>
+                <field name="p_total_dia"/>
+            </tree>
+        </field>
+    </record>
+
+
+        <record id="view_ticket_filter" model="ir.ui.view">
+            <field name="name">ticket.select</field>
+            <field name="model">ticket_trans</field>
+            <field name="arch" type="xml">
+                <search string="Search Ticket">
+                    <field name="nu_ticket" string="Ticket"/>
+                    <field name="fe_emision"/>
+                    <field name="no_canilla"/>
+                    <filter icon="terp-document-new" string="New" domain="[('state','=','draft')]"/>
+                    <filter icon="gtk-apply" string="Done" domain="[('state','in',('paid','invoiced','done'))]"/>
+                    <filter icon="terp-check" string="Invoiced" domain="[('state','=','invoiced')]"/>
+                    <filter icon="gtk-convert" string="Posted" domain="[('state','=','done')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Canilla" domain="[]" icon="terp-personal" context="{'group_by':'no_canilla'}"/>
+                        <filter string="Status" domain="[]" icon="terp-stock_effects-object-colorize" context="{'group_by':'state'}"/>
+                        <filter string="Fecha Emision" domain="[]" icon="terp-go-month" context="{'group_by':'fe_emision'}"/>
+                        <filter string="Producto" domain="[]" icon="terp-go-month" context="{'group_by':'de_producto'}"/>                        
+                    </group>
+                </search>
+            </field>
+        </record>
+        <record model="ir.ui.view" id="ticket_bill_form">
+            <field name="name">ticket_bill</field>
+            <field name="model">ticket_tempo</field>
+            <field name="arch" type="xml">
+                <form string="Facturacion Masiva Agencias - origen Ticket">
+                    <separator string=" " colspan="4" />
+                    <group>
+                        <field name="fechafactura"  string= "Fecha de Corte Emision dd/mm/aaaa" class="oe_inline"/>
+                <!--        <field name="name"  class="oe_inline"/>
+                        <field name="amount"  class="oe_inline"/>   -->
+                    </group>
+                    <footer>
+                        <button name="validar" string="Validar" type="object" class="oe_highlight"/>
+                        o
+                        <button name="preliminar" string="Facturar" type="object" class="oe_highlight"/>
+<!--                        o
+                        <button name="contabilizar" string="Contabilizar" type="object" class="oe_highlight"
+                            groups="account.group_account_user"/>  -->
+                        o
+                        <button name="limpiar" string="Limpiar" type="object" class="oe_highlight"/>
+                        o
+                        <button special="cancel" string="Cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="ticket_tempo2_form">
+            <field name="name">ticket_tempo2</field>
+            <field name="model">ticket_tempo2</field>
+            <field name="arch" type="xml">
+                <form string="Facturacion Masiva Contabilizar">
+                    <body>
+                        <group colspan="4">
+                            <separator string="Ciclo de Facturacion" colspan="2"/>
+                                <field name="ciclo_facturacion"
+                                options="{'no_create_edit': True}" /> 
+                                <field name="codigo_estado"/>
+                                <field name="fecha_inicio"/>
+                                <field name="fecha_termino"/>
+                        </group>
+                    </body>
+                    <footer>
+                        <button name="contabilizar" string="Contabilizar" type="object" class="oe_highlight"/> 
+                        o
+                        <button special="cancel" string="Cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+
+    <menuitem id="ticket_item_menu"
+              name="Gestión de Periódicos" 
+              sequence="10"
+              groups="security_stock.group_cajero"
+              icon="STOCK_OPEN"/>
+
+    <menuitem id="account_item_menu"
+              name="Contabilidad de Periódicos" 
+              sequence="10"
+              groups="security_stock.group_contador"
+              icon="STOCK_OPEN"/>
+
+
+    <menuitem id="account_config_menu"
+              name="Opciones" 
+              sequence="10"
+              groups="security_stock.group_contador"
+              parent="account_item_menu"
+              icon="STOCK_OPEN"/>
+
+    <menuitem id="ticket_config_menu"
+              name="Configuración" 
+              sequence="10"
+              groups="security_stock.group_cajero"
+              parent="ticket_item_menu"
+              icon="STOCK_OPEN"/>
+
+    <menuitem id="ticket_masivos_menu"
+              name="Tickets Masivos" 
+              sequence="20"
+              groups="security_stock.group_cajero"
+              parent="ticket_item_menu" 
+              icon="STOCK_OPEN"/>
+
+    <menuitem id="facturacion_menu"
+              name="Facturación" 
+              sequence="30"
+              groups="security_stock.group_cajero"
+              parent="ticket_item_menu" 
+              icon="STOCK_OPEN"/>
+
+    <menuitem id="otros_menu"
+              name="Otros" 
+              sequence="40"
+              groups="security_stock.group_cajero"
+              parent="ticket_item_menu" 
+              icon="STOCK_OPEN"/>
+
+    <menuitem id="reportes_menu"
+              name="Reportes" 
+              sequence="50"
+              groups="security_stock.group_cajero"
+              parent="ticket_item_menu" 
+              icon="STOCK_OPEN"/>
+    
+
+
+    <act_window 
+        name="Contabilizar Facturación"
+        res_model="ticket_tempo2"
+        src_model="ticket_trans"
+        view_mode="form"
+        target="new"            
+        key2="client_action_multi"
+        id="action_ticket_tempo2" />
+        
+    <menuitem id="ticket_facturacion2"
+        name="Factur. Masiva Contabilizar" sequence="20"
+        parent="account_config_menu" 
+        action="action_ticket_tempo2"/>
+
+    <act_window 
+        name="Customers"
+        res_model="res.partner"
+        view_type="form"
+        view_mode="kanban,tree,form"          
+        id="action_customer_menu"/>
+
+    <menuitem id="customers_menu"
+        name="Clientes" 
+        sequence="10"
+        groups="security_stock.group_cajero"
+        parent="ticket_config_menu" 
+        action="action_customer_menu"/>
+ 
+    <act_window 
+        name="Productos"
+        res_model="product.template"
+        view_type="form"
+        view_mode="kanban,tree,form"          
+        id="action_product_menu"/>
+
+    <menuitem id="products_menu"
+        name="Productos" 
+        sequence="20"
+        parent="ticket_config_menu"
+        groups="security_stock.group_cajero" 
+        action="action_product_menu"/>
+        
+    <act_window 
+            name="Importacion Tickets"
+            res_model="ticket_input"
+            view_type="form"
+            view_mode="tree,form"          
+            id="ticket_input_action"/>
+
+    <menuitem id="ticket_input_menu"
+              name="Importación Tickets" 
+              sequence="10"
+              groups="security_stock.group_cajero"
+              parent="ticket_masivos_menu" 
+              action="ticket_input_action"/>
+
+    <act_window 
+            name="Historicos de Tickets"
+            res_model="ticket_trans"
+            view_type="form"
+            view_mode="tree,form"          
+            id="ticket_trans_action"/>
+
+    <menuitem id="ticket_trans_menu"
+              name="Historico de Tickets" 
+              sequence="20"
+              groups="security_stock.group_cajero"
+              parent="ticket_masivos_menu"  
+              action="ticket_trans_action"/>
+
+    <act_window 
+            name="Facturacion Masiva"
+            res_model="ticket_tempo"
+            src_model="ticket_trans"
+            view_type="form"
+            view_mode="form"
+            target="new"
+            key2="client_action_multi"          
+            id="action_ticket_tempo"/>
+        
+    <menuitem id="ticket_facturacion_menu"
+          name="Facturacion Masiva" 
+          sequence="30"
+          parent="facturacion_menu"
+          action="action_ticket_tempo"/>
+   
+    <act_window 
+            name="Tarifa Masiva"
+            res_model="tarifa_excepcion"
+            view_type="form"
+            view_mode="tree,form"      
+            id="action_tarifa_excepcion"/>
+
+    <menuitem id="tarifa_excepcion_menu"
+          name="Tarifas de Excepción" 
+          sequence="10"
+          parent="otros_menu" 
+          action="action_tarifa_excepcion"/>
+  
+    <act_window 
+            name="Registro de Caja"
+            res_model="account.bank.statement"
+            view_type="form"
+            view_mode="tree,form,graph"      
+            id="action_bank_statement"/>
+
+    <menuitem id="registro_caja_menu"
+          name="Registro de caja" 
+          sequence="20"
+          parent="otros_menu" 
+          action="action_bank_statement"/>
+      
+    <act_window 
+            name="Registro de Entradas"
+            res_model="purchase.order"
+            view_type="form"
+            view_mode="tree,form,graph,calendar"      
+            id="action_purchase_order"/>
+
+    <menuitem id="registro_enrada_menu"
+          name="Registro de Entradas" 
+          sequence="30"
+          parent="otros_menu" 
+          action="action_purchase_order"/>
+
+    </data>
+</openerp>

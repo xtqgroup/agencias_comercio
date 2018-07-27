@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="pos_down_ticket_form">
+            <field name="name">pos_down_ticket</field>
+            <field name="model">pos_down_ticket</field>
+            <field name="arch" type="xml">
+                <form string="Descargar Pagos Canillas">
+                    <separator string="Presione el boton Descargar para importar la suma delos pagos realizados el dia de hoy:" colspan="4" />
+                    <group>
+ <!--                    <field name="name" class="oe_inline"/>
+                        <field name="amount"  class="oe_inline"/>  -->
+                    </group>
+                    <footer>
+                        <button name="run" string="Descargar" type="object" class="oe_highlight"/>
+                         or 
+                        <button special="cancel" string="Cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window 
+            name="Descargar Pagos Canillas"
+            res_model="pos_down_ticket"
+            src_model="account.bank.statement"
+            view_mode="form"
+            target="new"            
+            key2="client_action_multi"
+            id="action_pos_down_ticket" />
+
+        <record id="action_pos_down_ticket" model="ir.actions.act_window">
+            <field name="name">Descargar Pagos Canillas</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">pos_down_ticket</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</openerp>

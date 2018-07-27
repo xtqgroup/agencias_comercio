@@ -1,0 +1,321 @@
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    OpenERP, Open Source Management Solution
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+
+from datetime import datetime, timedelta
+import time
+from openerp import SUPERUSER_ID, pooler, api
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT
+import openerp.addons.decimal_precision as dp
+import csv
+import os.path
+import sys
+import psycopg2
+from openerp.api import Environment
+from openerp import registry
+class ticket_input(osv.osv):
+    _name = "ticket_input"
+    _inherit = []
+    _description = "Tabla temporal de transito Ticket ElComercio"
+    _columns = {
+        'ruc': fields.char('Nro de RUC de distribuidor'),
+        'de_empresa': fields.char('Razon social del distribuidor'),
+        'co_agencia': fields.char('Codigo de Agencia'),
+        'fe_emision': fields.char('Fecha de emision dd/mm/aaaa'),
+        'nu_ticket': fields.char('Nro de ticket'),
+        'co_canilla': fields.char('Codigo de canilla'),
+        'no_canilla': fields.char('Nombre del canilla'),
+        'ti_documento': fields.char('Tipo de documento (DNI/RUC)'),
+        'nu_documento': fields.char('Nro de documento (DNI/RUC)'),
+        'co_producto': fields.char('Codigo del producto'),
+        'de_producto': fields.char('Descripcion del producto'),
+        'co_producto_devolver': fields.char('Codigo del producto a devolver'),
+        'de_producto_devolver': fields.char('Descripcion del producto a devolver'),
+        'q_pauta': fields.integer('Cantidad de Pauta'),
+        'q_vendida': fields.integer('Cantidad Vendida de Pauta'),
+        'p_pauta': fields.float('Precio unitario de la pauta'),
+        'q_devolucion': fields.integer('Cantidad de Devolucion'),
+        'p_devolucion': fields.float('Precio unitario de la devolucion'),
+        'p_importe_ticket': fields.float('Importe' ),
+        'tipo_afecto': fields.char('Afecto / Inafecto'),
+        'p_total_dia': fields.float('Total del dia (del ticket)'),
+        'qp_cancelo': fields.float('Cancelo'),
+        'tipo_producto': fields.char('Tipo de Producto'),
+        'co_estado': fields.char('Estado del documento'),
+        'ciclo_facturacion': fields.integer('Ciclo de Facturacion'),
+    }
+
+class ticket_trans(osv.osv):
+    _name = "ticket_trans"
+    _inherit = []
+    _description = "Historico de Ticket ElComercio"
+    _columns = {
+        'ruc': fields.char('Nro de RUC de distribuidor'),
+        'de_empresa': fields.char('Razon social del distribuidor-'),
+        'co_agencia': fields.char('Codigo de Agencia'),
+        'fe_emision': fields.char('Fecha de emision dd/mm/aaaa'),
+        'nu_ticket': fields.char('Nro de ticket'),
+        'co_canilla': fields.char('Codigo de canilla'),
+        'no_canilla': fields.char('Nombre del canilla'),
+        'ti_documento': fields.char('Tipo de documento (DNI/RUC)'),
+        'nu_documento': fields.char('Nro de documento (DNI/RUC)'),
+        'co_producto': fields.char('Codigo del producto'),
+        'de_producto': fields.char('Descripcion del producto'),
+        'co_producto_devolver': fields.char('Codigo del producto a devolver'),
+        'de_producto_devolver': fields.char('Descripcion del producto a devolver'),
+        'q_pauta': fields.integer('Cantidad de Pauta'),
+        'q_vendida': fields.integer('Cantidad Vendida de Pauta'),
+        'p_pauta': fields.float('Precio unitario de la pauta'),
+        'q_devolucion': fields.integer('Cantidad de Devolucion'),
+        'p_devolucion': fields.float('Precio unitario de la devolucion'),
+        'p_importe_ticket': fields.float('Importe' ),
+        'tipo_afecto': fields.char('Afecto / Inafecto'),
+        'p_total_dia': fields.float('Total del dia (del ticket)'),
+        'qp_cancelo': fields.float('Cancelo'),
+        'tipo_producto': fields.char('Tipo de Producto'),
+        'co_estado': fields.char('Estado del documento'),
+        'ciclo_facturacion': fields.integer('Ciclo de Facturacion'),
+    }
+    _sql_constraints = [('co_ticket','unique(co_producto, co_canilla, fe_emision,nu_ticket)', 'Producto+canilla+fecha_emision+ticket debe ser Unico!')
+    ]       
+
+
+class ciclo_facturacion(osv.osv):
+    _name = "ciclo_facturacion"
+    _inherit = []
+    _description = "Ciclo Facturacion ElComercio"
+    _columns = {
+        'co_agencia': fields.char('Codigo de Agencia'),
+        'co_estado': fields.char('Estado ciclo_facturacion'),
+        'fe_inicio' : fields.date('Fecha de Inicio de Facturacion'),
+        'fe_termino' : fields.date('Fecha de Termino de Facturacion'),
+        'fe_cambio' : fields.date('Fecha de Facturacion'),
+#        'ciclo' : fields.one2many('sales.report','ciclo_facturacion', string='Ciclo de Facturacion'),
+    }
+    _order = "fe_termino desc"    
+
+
+class ticket_tempo(osv.osv_memory):
+    _name = 'ticket_tempo'
+    _columns = {
+        'name' : fields.char('Agencia', readonly=True),
+        # Attention, we don't set a domain, because there is a journal_type key 
+        # in the context of the action
+#        'amount' : fields.float('Amount',
+#                                digits_compute = dp.get_precision('Account'),
+#                                readonly=True),
+        'fechafactura' : fields.date('Mes de Facturacion'),
+    }
+    _defaults = {
+        'fechafactura' : lambda *a: time.strftime('%Y-%m-%d'), 
+    }
+    def validar(self, cr, uid, ids,context=None):
+        product_product_obj = self.pool.get('product.product')
+        product_template_obj = self.pool.get('product.template')
+        res_partner_obj = self.pool.get('res.partner')
+        fecha_hoy = context.get('date', time.strftime('%Y-%m-%d'))
+        cr.execute(""" select fnc_valida_ticket() """)
+        cr.execute(""" select distinct codigo, descripcion from tmp_err_ticket """)
+        resulterr = cr.fetchall()
+        if resulterr:
+            cr.execute(""" select fnc_limpiar_ticket() """)  
+            cr.commit()          
+            raise osv.except_osv(_('Mensajess!'), resulterr)
+            return false
+        else:
+            cr.execute( "SELECT distinct t1.co_canilla ,t1.no_canilla, t1.ti_documento, t1.nu_documento  FROM ticket_trans t1 where not EXISTS (SELECT 1 FROM res_partner where co_canilla = t1.co_canilla and customer = True ) ")
+            canilla = cr.fetchall()
+            for row in canilla:
+                canilla_reg = {
+                'co_canilla': row[0],
+                'name': row[1],
+               # 'notify_email': 'mail@mail.com',
+                'company_id': 1,
+                'supplier': 'False',
+                'is_company': 'False',
+                'customer': 'True',
+                'employee':'False',
+                'active':'True',
+                'ti_documento' : row[2],
+                'nu_documento' :row[3],
+                'alta_sgc' : True
+                }
+                res_id = res_partner_obj.create(cr, uid, canilla_reg, context=context)
+                cr.commit()
+            cr.execute("SELECT distinct t1.co_producto,t1.de_producto,t1.p_pauta::float, t1.tipo_afecto,case t1.tipo_producto when 'EJEMPLARES' then 'EJEMPLARES' else 'OPTATIVOS' end from ticket_trans t1 where not EXISTS (SELECT 1 FROM product_template where co_producto = t1.co_producto) and t1.co_estado = 'importado' order by t1.co_producto asc " )
+            producto = cr.fetchall()
+            mco_producto = ''
+            for row2 in producto:
+                if row2[0] != mco_producto:
+                    product_template_reg = {
+                    'name':row2[1],
+                    'categ_id': '1',
+                    'uom_po_id': 1,
+                    'sale_ok': 'True',
+                    'purchase_ok': 'True',
+                    'list_price':row2[2],
+                    'mes_type': 'fixed', 
+                    'write_uid':1,
+                    'create_uid':1, 
+                    'company_id':1,  
+                    'active': 'True', 
+                    'type': 'product', 
+                    'uom_id': 1,
+                    'co_producto': row2[0],
+                    'afecto': row2[3],
+                    'tipo_producto': row2[4],  
+                    'default_code' : row2[0],
+                    'alta_sgc' :True
+                    }
+                    product_template_id = product_template_obj.create(cr, uid, product_template_reg, context=context)
+                    cr.commit()
+                mco_producto = row2[0] 
+            # Eliminar los impuestos a los inafectos
+            cr.execute(""" delete from product_taxes_rel where prod_id in (select id from product_template where afecto = 'Inafecto') """)  
+            cr.execute(""" select fnc_limpiar_ticket() """)            
+            cr.commit()
+    def preliminar(self, cr, uid, ids,context=None):
+        errcanilla = '' ; errproducto = ''
+        cr.execute(""" select co_canilla , name from res_partner where alta_sgc = false  """)
+        errcanilla = cr.fetchall()
+        if errcanilla:
+            raise osv.except_osv(_('Mensaje: Canillas pendiente de Visto Bueno!'), errcanilla)
+        cr.execute(""" select co_producto, name from product_template where alta_sgc = false  """)
+        errproducto = cr.fetchall()
+        if errproducto:
+            raise osv.except_osv(_('Mensaje: Productos pendiente de Visto Bueno'), errproducto)
+        cr.execute(""" select fnc_ticket_liquidacion() """)
+        cr.execute(""" select distinct codigo, descripcion from tmp_err_ticket """)
+        resulterr = cr.fetchall()
+        if resulterr:
+            cr.rollback()
+            raise osv.except_osv(_('Mensaje!'), resulterr)
+        else:
+            cr.commit()
+        temporal = self.browse(cr, uid, ids, context=context)
+        datofactura = temporal.fechafactura
+        cr.execute(" select fnc_insert_comprobante(%s) ", (datofactura,))
+        cr.execute(""" select distinct codigo, descripcion from tmp_err_ticket """)
+        resulterr = cr.fetchall()
+        if resulterr:
+            raise osv.except_osv(_('Mensaje!'), resulterr)
+            return false
+        else:
+            cr.commit()
+    def contabilizar(self, cr, uid, ids,context=None):
+        cr.execute(""" select fnc_contabilizar() """)
+        cr.execute(""" select distinct codigo, descripcion from tmp_err_ticket """)
+        resulterr = cr.fetchall()
+        if resulterr:
+            raise osv.except_osv(_('Mensaje!'), resulterr)
+        else:
+            cr.commit()
+    def limpiar(self, cr, uid, ids,context=None):
+        cr.execute(""" select fnc_limpiar_comprobante() """)
+        cr.execute(""" select distinct codigo, descripcion from tmp_err_ticket """)
+        resulterr = cr.fetchall()
+        if resulterr:
+            raise osv.except_osv(_('Mensaje!'), resulterr)
+        else:
+            cr.commit()
+    def definitivo(self, cr, uid, ids, context=None):
+        inv_obj = self.pool.get('account.invoice')
+        inv_line_obj = self.pool.get('account.invoice.line')
+        with Environment.manage():
+            with registry(self.pool.get('account_invoice')).cursor() as new_cr:
+                new_cr.execute("SELECT t2.id,t1.fe_emision,t1.grupo_producto,t2.nu_documento,t1.co_canilla ,t1.pbase::float,t1.exonerado::float,  t1.igv::float,  t1.total::float, t1.ruc ,t2.name,  t2.ti_documento ,t1.id FROM comprobante t1 join res_partner t2 on ( t1.co_canilla = t2.co_canilla  ) where not EXISTS (SELECT 1 FROM account_invoice where comprobante_id = t1.id)")
+                ticket_cabecera = new_cr.fetchall()
+                for row in ticket_cabecera:
+                    if row[2] == '1':
+                        strproducto = 'E'
+                    else:
+                        strproducto = 'O'
+                    if row[11] == 'DNI':
+                        strdocumento = 'B'
+                    else:
+                        strdocumento = 'F'
+                    strcode = 'V' + strdocumento + strproducto
+                    new_cr.execute(" select id from account_journal where  code = %s", [strcode])
+                    tid = new_cr.fetchone()
+                    inv = {
+                        'partner_id': row[0], 
+                        'journal_id': tid, 
+                        'account_id': 62, 
+                        'amount_untaxed': row[5], 
+                        'amount_tax': row[7], 
+                        'amount_total': row[8], 
+                        'company_id': 1,
+                        'currency_id':165,
+                        'reference_type': 'none',
+                        'state': 'draft',
+                        'type': 'out_invoice',
+                        'comprobante_id' :  row[12]
+                        }
+                    inv_id = inv_obj.create(new_cr, uid, inv, context=context)
+                    new_cr.execute("SELECT t2.id, t3.id,t3.name_template,t1.p_pauta::float,q_vendida_neto::integer, t1.tipo_afecto , t1.pbase from comprobante_linea  t1, comprobante t2 ,product_product t3 where t2.id = t1.comprobante_id and  t1.co_producto = t3.co_producto and t2.id =%s ",[row[12]])
+                    ticket_detalle = new_cr.fetchall()
+                    for row2 in ticket_detalle:
+                        inv_line = {
+                        'invoice_id':inv_id, 
+                        'product_id':row2[1], 
+                        'name': row2[2], 
+                        'account_id':1664,
+                        'quantity':row2[4],
+                        'uos_id': 1,  
+                        'price_unit': row2[3],  
+                        'price_subtotal': row2[6]
+                        }
+                        inv_line_id = inv_line_obj.create(new_cr, uid, inv_line, context=context)
+                        if row2[5] == 'Afecto':
+                            query =  "INSERT INTO account_invoice_line_tax  (invoice_line_id, tax_id) VALUES (%s, %s);"
+                            data = (inv_line_id, 1)
+                            res = new_cr.execute(query, data)
+                        new_cr.commit()
+
+class ticket_tempo2(osv.osv_memory):
+    _name = 'ticket_tempo2'
+    _columns = {
+        'name' : fields.char('Agencia', readonly=True),
+        'codigo_estado'  : fields.char(compute='_get_ciclo', string='Codigo de Estado'),
+        'fecha_inicio' : fields.date(compute='_get_ciclo', string='Fecha de Inicio'),
+        'fecha_termino'  : fields.date(compute='_get_ciclo', string='Fecha de Termino'),
+        'ciclo_facturacion' : fields.many2one('ciclo_facturacion', string='Ciclo Facturacion')
+        }
+
+    def contabilizar(self, cr, uid, ids,context=None):
+        cr.execute(""" select fnc_contabilizar() """)
+        cr.execute(""" select distinct codigo, descripcion from tmp_err_ticket """)
+        resulterr = cr.fetchall()
+        if resulterr:
+            raise osv.except_osv(_('Mensaje!'), resulterr)
+        else:
+            cr.commit()
+
+    @api.one
+    @api.depends('ciclo_facturacion')
+    def _get_ciclo(self): 
+        for rec in self.ciclo_facturacion:
+            self.fecha_inicio = rec.fe_inicio
+            self.fecha_termino = rec.fe_termino
+            self.codigo_estado = rec.co_estado         
+
+# vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

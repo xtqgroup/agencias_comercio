@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<openerp>
+     <data>
+
+ <record id="sale_wizard_view" model="ir.ui.view">
+            <field name="name">sales.report.wizard</field>
+            <field name="model">sales.report</field>
+            <field name="inherit_id" ref="" />
+            <!-- Aqui se abre la arquitectura, la cual se cierra al final de todo el form -->
+            <field name="arch" type="xml">
+            
+            <!-- Aqui esta todo el cuerpo del formulario -->
+            
+                  <form string="Sale Report">
+            				<body>
+                        <group colspan="4">
+                        	<group col="2" colspan="2">
+                        		<separator string="Rango de Fechas" colspan="2" invisible="1"/>
+                        		<field name="date_from" invisible="1"/>
+                            <field name="date_to" invisible="1"/>
+                            </group>
+                        </group>
+                    </body>
+                    <footer>
+                    	<button name="check_report_sale" string="Exportar en Excel" type="object"
+                    		class="oe_highlight"  style="margin: 0 5px;"
+                    		context="{'xls_export':1}" icon='gtk-print' />
+                    	or
+                    	<button string="Cancel" class="oe_highlight" special="cancel" />
+                    </footer>  
+                </form>
+            </field>
+
+        </record>
+
+      
+<record model="ir.actions.act_window" id="sale_wizard_action">
+            <field name="name">Reporte de Ventas</field>
+            <field name="res_model">sales.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>      
+                  
+	 <menuitem id="xls_menu" name="Reporte Excel(xls)"
+	          parent="ticket.account_config_menu"
+	          action="sale_wizard_action"/>
+	          
+	<record model="ir.actions.act_window" id="sale_wizard_action2">
+            <field name="name">Reporte de Ventas</field>
+            <field name="res_model">sales.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>  
+        
+	 <menuitem id="xls_menu2" name="Reporte Excel(xls)"
+	          parent="ticket.reportes_menu"
+	          action="sale_wizard_action2"/>
+
+<record id="sale_wizard_view_inherit" model="ir.ui.view">
+            <field name="name">Ciclo de Facturacion</field>
+            <field name="model">sales.report</field>
+            <field name="inherit_id" ref="manufacturing_reports.sale_wizard_view"/>
+            <field name="arch" type="xml">
+              <xpath expr="//field[@name='date_to']" position="after">
+                	<group>
+                        <group>
+                           	<separator string="Ciclo de Facturacion" colspan="2"/>
+                           	<field name="ciclo_facturacion" 
+                           	options="{'no_create_edit': True}"/> 
+                           	<field name="codigo_estado"/>
+                           	<field name="fecha_inicio"/>
+                           	<field name="fecha_termino"/>
+                    	</group>
+ 					        </group>
+ 				      </xpath>
+ 			      </field>
+</record>
+                    
+ </data>
+</openerp>

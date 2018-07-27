@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+    
+    <record id="group_diarios" model="ir.module.category">
+    	<field name="name">Gestión de Diarios</field>
+    </record>
+    
+    <record id="group_contador" model="res.groups">
+        <field name="name">Contador</field>
+        <field name="category_id" ref="group_diarios"/>
+    </record>
+	
+	<record id="group_cajero" model="res.groups">
+    	<field name="name">Cajero</field>
+    	<field name="category_id" ref="group_diarios"/>
+    </record>
+	
+</data>
+</openerp>

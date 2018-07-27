@@ -1,0 +1,8 @@
+eclipse.preferences.version=1
+encoding//manufacturing_reports/report/mrp_report_xls.py=utf-8
+encoding//manufacturing_reports/wizards/mrp_report_wizard.py=utf-8
+encoding//mrp_analytic/__init__.py=utf-8
+encoding//mrp_analytic/models/__init__.py=utf-8
+encoding//mrp_analytic/models/mrp_production.py=utf-8
+encoding//mrp_bom_sale_pack/models/mrp_bom_sale_pack.py=utf-8
+encoding//security_stock/__openerp__.py=utf-8

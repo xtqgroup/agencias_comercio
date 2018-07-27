@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+encoding//ticket/__init__.py=utf-8
+encoding//ticket/__openerp__.py=utf-8
+encoding//ticket/models/pos_config.py=utf-8
+encoding//ticket/models/ticket_input.py=utf-8

@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+        <!-- PRODUCT TEMPLATE -->
+        <record model="ir.ui.view" id="product_template_form_view_inherit">
+            <field name="name">product.template.form.view.inherit</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <field name="list_price" position="after">
+                    <field name="alta_sgc" />
+                    <field name="co_producto" />
+                    <field name="afecto" />
+                    <field name="tipo_producto" />
+                </field>
+            </field>
+        </record>
+
+    <record model="ir.actions.act_window" id="tarifa_excepcion_action">
+        <field name="name">Tarifas de Excepcion</field>
+        <field name="res_model">tarifa_excepcion</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to define a Tarifa excepcion.
+              </p><p>
+                You must create if there is an excepcion price
+              </p><p>
+                The price form contains information.
+              </p>
+            </field>
+    </record>
+    <menuitem id="tarifa_excepcion"
+              name="Tarifa de Excepcion" sequence="12"
+              parent="base.menu_sales" groups="base.group_sale_salesman,base.group_sale_manager"
+              action="tarifa_excepcion_action"/>
+
+    <record model="ir.ui.view" id="tarifa_excepcion_view_form">
+        <field name="name">view.name</field>
+        <field name="model">tarifa_excepcion</field>
+        <field name="type">form</field>  <!-- tree,form,calendar,search,graph,gantt -->
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="tarifa Excepcion">
+                <group>
+                    <field name="fe_emision" />
+                    <field name="product_id" />
+                    <field name="p_pauta" />
+                </group>
+            </form>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="tarifa_excepcion_view_tree">
+        <field name="name">view.name</field>
+        <field name="model">tarifa_excepcion</field>
+        <field name="type">tree</field>  <!-- tree,form,calendar,search,graph,gantt -->
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <tree string="Ticket ">
+                <field name="fe_emision"/>
+                <field name="product_id"/>
+                <field name="p_pauta"/>
+            </tree>
+        </field>
+    </record>
+
+    </data>
+</openerp>
