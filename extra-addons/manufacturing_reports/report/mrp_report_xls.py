@@ -387,31 +387,38 @@ class MrpXlsReport(report_xls):
                             (Case When suma_vendida_neto is not  null Then sub_venta.fe_emision Else sub_compra.date_planned End),
                             (Case When suma_vendida_neto is not null Then sub_venta.co_producto Else substring(sub_compra.name,2,18) End),
                             (Case When suma_vendida_neto is not null Then sub_venta.de_producto Else substring(sub_compra.name,21) End),
-                            (suma_comprada_neto)::varchar(20), 
+                            (p_venta)::varchar(10),
+                            (p_compra)::varchar(10),
+                            devolucion::varchar(5),
+                            (suma_comprada_neto)::varchar(20),
                             (suma_vendida_neto)::varchar(20),
-                            ((suma_comprada_neto - suma_vendida_neto))::varchar(20) as diferencia
+                            ((suma_comprada_neto - suma_vendida_neto))::varchar(20) as diferencia,
+                            (suma_vendida_neto * p_venta)::varchar(20) as monto_vendida,
+                            (suma_comprada_neto * p_compra)::varchar(20) as monto_comprada,
+                            ((suma_vendida_neto * p_venta)-(suma_comprada_neto * p_compra))::varchar(20) as diferencia_monto
                             FROM 
                             (
-                            select max(pol.date_planned) as date_planned, pol.name, substring(pol.name,2,18), sum(pol.product_qty) as suma_comprada_neto
+                            select max(pol.date_planned) as date_planned, pol.name, substring(pol.name,2,18), sum(pol.product_qty) as suma_comprada_neto, max(pol.price_unit) as p_compra
                             from product_template pt, product_product pp, purchase_order po, purchase_order_line pol
                             where 
                             pt.id = pp.product_tmpl_id 
                             and pol.product_id = pp.id 
                             and po.id = pol.order_id
-                            and date_planned >= %s 
+                            and date_planned >= %s
                             and date_planned <= %s
                             group by pol.name, substring(pol.name,2,18), pol.product_id
                             ) as sub_compra
                             FULL OUTER JOIN
                             (
-                            select co.fe_emision, coli.de_producto, coli.co_producto, sum(coli.q_vendida_neto) as suma_vendida_neto
-                            from product_template pt, product_product pp, comprobante co, comprobante_linea coli
+                            select co.fe_emision, coli.de_producto, coli.co_producto, sum(coli.q_vendida_neto) as suma_vendida_neto, max(coli.p_pauta) as p_venta, sum(titrans.q_devolucion) as devolucion
+                            from product_template pt, product_product pp, comprobante co, comprobante_linea coli, ticket_trans titrans
                             where 
                             pt.id = pp.product_tmpl_id 
                             and coli.co_producto = pt.co_producto 
                             and co.id = coli.comprobante_id 
-                            and fe_emision >= %s 
-                            and fe_emision <= %s
+                            and co.fe_emision >= %s
+                            and co.fe_emision <= %s
+                            and coli.trans_id = titrans.id
                             group by co.fe_emision, coli.de_producto, coli.co_producto
                             ) as sub_venta
                             ON 
